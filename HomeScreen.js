@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
+import NavigationBar from './NavigationBar'; // Import the NavigationBar component
 
-export default function HomeScreen() {
+export default function HomeScreen({ navigation }) {
   return (
     <ImageBackground
       source={{ uri: 'https://i.pinimg.com/1200x/d0/9d/51/d09d516bc713c188426125f8379690e3.jpg' }} // Replace with your background image URL
@@ -18,7 +19,7 @@ export default function HomeScreen() {
               <FontAwesome
                 key={index}
                 name="circle"
-                size={10}
+                size={30}
                 color={index === 0 ? '#FFC107' : '#D3D3D3'}
                 style={styles.dot}
               />
@@ -31,7 +32,7 @@ export default function HomeScreen() {
 
         {/* Buttons Section */}
         <View style={styles.buttonsContainer}>
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity onPress={() => navigation.navigate('Timer')} style={styles.button}>
             <Text style={styles.buttonText}>Timer</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.button}>
@@ -42,12 +43,8 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Navigation Section */}
-        <View style={styles.navContainer}>
-          <FontAwesome name="home" size={24} color="#fff" />
-          <FontAwesome name="bookmark" size={24} color="#fff" />
-          <FontAwesome name="music" size={24} color="#fff" />
-        </View>
+        {/* Navigation Bar */}
+        <NavigationBar navigation={navigation} />
       </View>
     </ImageBackground>
   );
@@ -61,14 +58,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    backgroundColor: 'fff',
   },
   topSection: {
     marginTop: 40,
     alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 15,
+    padding: 20,
   },
   myWeekText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 30,
     fontWeight: 'bold',
   },
   dayText: {
@@ -81,14 +82,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dot: {
-    marginHorizontal: 3,
+    marginHorizontal: 4,
   },
   greetingText: {
     color: '#fff',
     fontSize: 28,
     fontWeight: 'bold',
     marginTop: 20,
-    textAlign: 'center',
+    textAlign: 'left',
   },
   buttonsContainer: {
     flexDirection: 'row',
@@ -110,9 +111,11 @@ const styles = StyleSheet.create({
   },
   navContainer: {
     position: 'absolute',
-    bottom: 20,
-    width: '100%',
+    bottom: 0,
+    width: '110%',
     flexDirection: 'row',
     justifyContent: 'space-around',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 40,
   },
 });
