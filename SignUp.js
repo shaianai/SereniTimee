@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Button, Alert, StyleSheet } from 'react-native';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import app from "./firebase"; // Import the Firebase instance
+import { LinearGradient } from 'expo-linear-gradient';
 
 const auth = getAuth(app); // Initialize Firebase Auth
 
@@ -20,7 +21,7 @@ export default function Signup({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <LinearGradient colors={['#6086b0','#214872', '#214872', '#6086b0', '#a3c5ea', '#dbecff' ]} style={styles.container}>
       <Text style={styles.title}>Sign Up</Text>
       <TextInput
         style={styles.input}
@@ -37,11 +38,16 @@ export default function Signup({ navigation }) {
         onChangeText={setPassword}
         secureTextEntry
       />
-      <Button title="Sign Up" onPress={handleSignup} />
+      <TouchableOpacity
+                      style={styles.button}
+                      onPress={handleSignup}
+                    >
+                      <Text style={styles.buttonText}>Sign up</Text>
+                    </TouchableOpacity>
       <Text onPress={() => navigation.navigate('Login')} style={styles.link}>
         Already have an account? Log in
       </Text>
-    </View>
+    </LinearGradient>
   );
 }
 
@@ -67,5 +73,16 @@ const styles = StyleSheet.create({
     color: 'blue',
     marginTop: 15,
     textAlign: 'center',
+  },
+  button: {
+    backgroundColor: '#213555',
+    padding: 15,
+    borderRadius: 40,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
 });

@@ -7,6 +7,8 @@ import HomeScreen from './HomeScreen'; // Ensure the path is correct
 import Favorites from './Favorites'; // Ensure the path is correct
 import Music from './Music'; // Ensure the path is correct
 import Timer from './Timer'; // Ensure the path is correct
+import MoodPicker from './MoodPicker'; // Import the MoodPicker component
+import Start from './Start';
 
 const Stack = createStackNavigator();
 
@@ -16,10 +18,12 @@ export default function App() {
       <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Signup" component={Signup} />
+        <Stack.Screen name="MoodPicker" component={MoodPicker} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Favorites" component={Favorites} />
         <Stack.Screen name="Music" component={Music} />
         <Stack.Screen name="Timer" component={Timer} />
+        <Stack.Screen name="Start" component={Start} />
       </Stack.Navigator>
     </NavigationContainer>
   );
