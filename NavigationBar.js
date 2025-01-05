@@ -25,6 +25,7 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-around',
+    alignCItems:"center",
     backgroundColor: 'rgba(0, 0, 0, 0.5)', // Slightly transparent black
     padding: 20,
   },

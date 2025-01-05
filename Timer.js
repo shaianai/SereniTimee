@@ -5,6 +5,7 @@ import { Picker } from '@react-native-picker/picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { db } from './firebase';
 import { collection, addDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth'; // Import Firebase Auth
 
 export default function Timer({ navigation }) {
   const [hours, setHours] = useState(0);
@@ -37,10 +38,45 @@ export default function Timer({ navigation }) {
   };
 
   const saveToFavorites = async () => {
+    const auth = getAuth(); // Get the Firebase Auth instance
+        const user = auth.currentUser; // Get the current user
+    
+        if (!user) {
+          alert('You must be logged in to save your mood.');
+          return;
+        }
+    
+        const uid = user.uid; // Get the user's unique ID
+
     try {
       await addDoc(collection(db, 'favorites'), {
         name: sessionName,
         duration: `${hours}h ${minutes}m ${seconds}s`,
+        uid: uid,
+        createdAt: new Date(),
+      });
+      //Alert.alert('Success', 'Session added to favorites!');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to add session to favorites.');
+    }
+  };
+
+  const saveToSessions = async () => {
+    const auth = getAuth(); // Get the Firebase Auth instance
+        const user = auth.currentUser; // Get the current user
+    
+        if (!user) {
+          alert('You must be logged in to save your mood.');
+          return;
+        }
+    
+        const uid = user.uid; // Get the user's unique ID
+        
+    try {
+      await addDoc(collection(db, 'sessions'), {
+        name: sessionName,
+        duration: `${hours}h ${minutes}m ${seconds}s`,
+        uid: uid,
         createdAt: new Date(),
       });
       //Alert.alert('Success', 'Session added to favorites!');
@@ -110,7 +146,11 @@ export default function Timer({ navigation }) {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={startTimer}
+          onPress={() => {
+            startTimer();
+            saveToSessions();
+          }}
+          
         >
           <Text style={styles.buttonText}>Start Session</Text>
         </TouchableOpacity>

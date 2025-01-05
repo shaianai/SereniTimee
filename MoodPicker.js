@@ -3,8 +3,10 @@ import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { db } from './firebase'; // Import your Firestore instance
 import { collection, addDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth'; // Import Firebase Auth
 import { LinearGradient } from 'expo-linear-gradient';
 
+// Mood data for rendering
 const moodData = [
   { id: '1', mood: 'Happy', icon: 'emoticon-happy-outline' },
   { id: '2', mood: 'Excited', icon: 'emoticon-excited-outline' },
@@ -21,25 +23,41 @@ const moodData = [
 ];
 
 const MoodPicker = ({ navigation }) => {
-  const handleMoodSelect = async (mood) => {
-    const today = new Date();
-    const day = today.toLocaleString('en-US', { weekday: 'long' }).toLowerCase(); // Get the day of the week
-    const timestamp = new Date(); // Capture the timestamp when the mood is selected
-
+  // Function to save mood data to Firestore
+  const saveMoodToDatabase = async (mood, day, timestamp, uid) => {
     try {
-      // Add a new document to Firestore, including the timestamp
+      // Add a new document to Firestore
       await addDoc(collection(db, 'moodToday'), {
         mood: mood.toLowerCase(),
         day,
         timestamp, // Add the timestamp field
+        uid, // Add the user's ID
       });
 
-      console.log(`Mood "${mood}" saved for ${day}`);
+      console.log(`Mood "${mood}" saved for ${day} by user ${uid}`);
       navigation.navigate('Home'); // Navigate to the Home screen after saving
     } catch (error) {
       console.error('Error saving mood:', error);
       alert('Failed to save mood. Please try again.');
     }
+  };
+
+  const handleMoodSelect = async (mood) => {
+    const today = new Date();
+    const day = today.toLocaleString('en-US', { weekday: 'long' }).toLowerCase(); // Get the day of the week
+    const timestamp = new Date(); // Capture the timestamp when the mood is selected
+    const auth = getAuth(); // Get the Firebase Auth instance
+    const user = auth.currentUser; // Get the current user
+
+    if (!user) {
+      alert('You must be logged in to save your mood.');
+      return;
+    }
+
+    const uid = user.uid; // Get the user's unique ID
+
+    // Call the function to save mood to the database
+    saveMoodToDatabase(mood, day, timestamp, uid);
   };
 
   return (
@@ -70,7 +88,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#eef3fc',
     alignItems: 'center',
     paddingTop: 50,
-    justifyContent:'center',
+    justifyContent: 'center',
   },
   title: {
     fontSize: 36,
@@ -81,8 +99,8 @@ const styles = StyleSheet.create({
   },
   gridContainer: {
     justifyContent: 'center',
-    bottom:10,
-    top:100,
+    bottom: 10,
+    top: 100,
   },
   moodButton: {
     width: 100,

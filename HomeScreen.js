@@ -1,96 +1,118 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
-import { doc, getDocs, query, where, collection, orderBy, limit } from 'firebase/firestore';
-
+import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, Alert } from 'react-native';
+import { doc, getDoc, getDocs, query, where, collection, orderBy, limit } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 import { db } from './firebase'; // Adjust path as needed
 import NavigationBar from './NavigationBar';
+import SignOutComponent from './SignOutComponent';
 
 export default function HomeScreen({ navigation }) {
   const [weeklyMoods, setWeeklyMoods] = useState(new Array(7).fill('⚪')); // Default to empty circles
+  const [userName, setUserName] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [currentDate, setCurrentDate] = useState('');
+  const [currentTime, setCurrentTime] = useState('');
+
+  useEffect(() => {
+    // Update the date and time every second
+    const interval = setInterval(() => {
+      const now = new Date();
+      setCurrentDate(now.toLocaleDateString('en-PH', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }));
+      setCurrentTime(now.toLocaleTimeString('en-PH', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }));
+    }, 1000);
+
+    const fetchUserData = async () => {
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) {
+        Alert.alert('Error', 'User not authenticated. Redirecting to login.');
+        navigation.navigate('Login'); // Redirect to login
+        return;
+      }
+
+      try {
+        const uid = currentUser.uid;
+        const userDocRef = doc(db, 'users', uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+          setUserName(userDoc.data().fname); // Set user's name
+        } else {
+          Alert.alert('Error', 'User data not found in Firestore.');
+        }
+      } catch (error) {
+        Alert.alert('Error', error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [navigation]);
 
   useEffect(() => {
     const fetchMoods = async () => {
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) return;
+
       try {
         const today = new Date();
-        const currentWeekStart = new Date(today.setDate(today.getDate() - today.getDay())); // Start of the week (Sunday)
+        const currentWeekStart = new Date(today.setDate(today.getDate() - today.getDay())); // Start of the week
         const daysOfWeek = Array.from({ length: 7 }, (_, i) => {
           const day = new Date(currentWeekStart);
           day.setDate(day.getDate() + i);
-          return day.toLocaleString('en-US', { weekday: 'long' }).toLowerCase(); // Use lowercase to match Firestore data
+          return day.toLocaleString('en-US', { weekday: 'long' }).toLowerCase(); // Match Firestore data
         });
-
-        console.log('Days of the week to query:', daysOfWeek);
-
-        // Log all documents in the 'moodToday' collection
-        const allDocsSnapshot = await getDocs(collection(db, 'moodToday'));
-        console.log('All Documents in moodToday:', allDocsSnapshot.docs.map((doc) => doc.data()));
 
         const moodsMap = {};
 
         for (const day of daysOfWeek) {
-          console.log(`Fetching data for: ${day}`);
-
-          // Full query with orderBy and limit
           const dayQuery = query(
             collection(db, 'moodToday'),
             where('day', '==', day),
+            where('uid', '==', currentUser.uid),
             orderBy('timestamp', 'desc'),
             limit(1)
           );
 
           const querySnapshot = await getDocs(dayQuery);
-          console.log(`QuerySnapshot for ${day}:`, querySnapshot.docs.map((doc) => doc.data()));
-
-          // Test query without orderBy and limit
-          const simpleQuery = query(
-            collection(db, 'moodToday'),
-            where('day', '==', day)
-          );
-
-          const simpleQuerySnapshot = await getDocs(simpleQuery);
-          console.log(`QuerySnapshot without orderBy for ${day}:`, simpleQuerySnapshot.docs.map((doc) => doc.data()));
 
           if (!querySnapshot.empty) {
             const latestDoc = querySnapshot.docs[0].data();
-            moodsMap[day] = latestDoc.mood; // Use the 'mood' field
-            console.log(`Latest mood for ${day}:`, latestDoc.mood);
-          } else {
-            console.log(`No data found for ${day}`);
+            moodsMap[day] = latestDoc.mood;
           }
         }
 
         const moodEmojis = daysOfWeek.map((day) => {
           switch (moodsMap[day]) {
-            case 'happy':
-              return '😊';
-            case 'excited':
-              return '😃';
-            case 'confused':
-              return '😕';
-            case 'sad':
-              return '😢';
-              case 'bored':
-              return '😪';
-            case 'sick':
-              return '😷';
-            case 'sleepy':
-              return '😌🥱';
-            case 'angry':
-              return '😡';
-            case 'stressed':
-              return '😫';
-            case 'relaxed':
-              return '😌';
-            case 'lazy':
-              return '🦥';
-            case 'grateful':
-              return '🤗';
-            default:
-              return '⚪';
+            case 'happy': return '😊';
+            case 'excited': return '😃';
+            case 'confused': return '😕';
+            case 'sad': return '😢';
+            case 'bored': return '😪';
+            case 'sick': return '😷';
+            case 'sleepy': return '🥱';
+            case 'angry': return '😡';
+            case 'stressed': return '😫';
+            case 'relaxed': return '😌';
+            case 'lazy': return '🦥';
+            case 'grateful': return '🤗';
+            default: return '⚪';
           }
         });
 
-        console.log('Final Mood Emojis:', moodEmojis);
         setWeeklyMoods(moodEmojis);
       } catch (error) {
         console.error('Error fetching moods:', error);
@@ -100,11 +122,22 @@ export default function HomeScreen({ navigation }) {
     fetchMoods();
   }, []);
 
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
+
   return (
     <ImageBackground
       source={{ uri: 'https://i.pinimg.com/1200x/d0/9d/51/d09d516bc713c188426125f8379690e3.jpg' }}
       style={styles.background}
     >
+      {/* Sign Out Button */}
+      <SignOutComponent navigation={navigation} styles={styles} />
+
       <View style={styles.container}>
         {/* Top Section */}
         <View style={styles.topSection}>
@@ -120,7 +153,7 @@ export default function HomeScreen({ navigation }) {
         </View>
 
         {/* Greeting Section */}
-        <Text style={styles.greetingText}>Good Evening, User</Text>
+        <Text style={styles.greetingText}>Good Evening, {userName}</Text>
 
         {/* Buttons Section */}
         <View style={styles.buttonsContainer}>
@@ -135,9 +168,14 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Navigation Bar */}
-        <NavigationBar navigation={navigation} />
+        <View style={styles.topSection}>
+        <Text style={styles.myWeekText}>{currentDate}</Text>
+        <Text style={styles.dayText}>{currentTime}</Text>
+        </View>
       </View>
+
+      {/* Navigation Bar */}
+      <NavigationBar navigation={navigation} style={styles} />
     </ImageBackground>
   );
 }
@@ -151,6 +189,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: 'fff',
+    //alignItems: 'center',
   },
   topSection: {
     marginTop: 40,
