@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.4",
+    "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-community/checkbox": "^0.5.17",
     "@react-native-community/viewpager": "^5.0.11",
     "@react-native-firebase/app": "^21.6.1",
@@ -18,9 +19,13 @@
     "@react-navigation/native": "^7.0.14",
     "@react-navigation/stack": "^7.1.1",
     "expo": "~52.0.23",
+    "expo-app-loading": "^2.1.1",
+    "expo-auth-session": "~6.0.1",
     "expo-checkbox": "^4.0.0",
+    "expo-font": "^13.0.2",
     "expo-linear-gradient": "~14.0.1",
     "expo-status-bar": "~2.0.0",
+    "expo-web-browser": "~14.0.1",
     "firebase": "^11.1.0",
     "react": "18.3.1",
     "react-native": "0.76.5",
@@ -33,10 +38,7 @@
     "react-native-vector-icons": "^10.2.0",
     "react-navigation": "^4.4.4",
     "react-navigation-stack": "^2.10.4",
-    "expo-auth-session": "~6.0.1",
-    "undefined": "expo-auth-session/providers/google",
-    "expo-web-browser": "~14.0.1",
-    "@react-native-async-storage/async-storage": "1.23.1"
+    "undefined": "expo-auth-session/providers/google"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

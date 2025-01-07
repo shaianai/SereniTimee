@@ -5,6 +5,8 @@ import { getAuth } from 'firebase/auth';
 import { db } from './firebase'; // Adjust path as needed
 import NavigationBar from './NavigationBar';
 import SignOutComponent from './SignOutComponent';
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading';
 
 export default function HomeScreen({ navigation }) {
   const [weeklyMoods, setWeeklyMoods] = useState(new Array(7).fill('⚪')); // Default to empty circles
@@ -12,7 +14,14 @@ export default function HomeScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState('');
   const [currentTime, setCurrentTime] = useState('');
+  const [fontsLoaded] = useFonts({
+    'BricolageGrotesque': require('./assets/fonts/BricolageGrotesque.ttf'),
+  });
 
+  // Ensure fonts are loaded before rendering
+  if (!fontsLoaded) {
+    return <AppLoading />;
+  }
   useEffect(() => {
     // Update the date and time every second
     const interval = setInterval(() => {
@@ -143,6 +152,7 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.topSection}>
           <Text style={styles.myWeekText}>My week</Text>
           <Text style={styles.dayText}>Day 1 of 7</Text>
+
           <View style={styles.dots}>
             {weeklyMoods.map((mood, index) => (
               <Text key={index} style={styles.moodEmoji}>
@@ -192,20 +202,24 @@ const styles = StyleSheet.create({
     //alignItems: 'center',
   },
   topSection: {
-    marginTop: 40,
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    marginTop: 10,
+    //alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
     borderRadius: 15,
     padding: 20,
   },
   myWeekText: {
-    color: '#fff',
-    fontSize: 30,
-    fontWeight: 'bold',
+    paddingLeft: 15,
+    justifyContent:"left",
+    color: '#3A6D8C',
+    fontSize: 20,
+    fontFamily: 'BricolageGrotesque',
   },
   dayText: {
-    color: '#fff',
-    fontSize: 20,
+    fontFamily: 'BricolageGrotesque',
+    paddingLeft: 15,
+    color: '#3A6D8C',
+    fontSize: 40,
     marginVertical: 5,
   },
   dots: {
@@ -217,9 +231,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   greetingText: {
+    fontFamily: 'BricolageGrotesque',
     color: '#fff',
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 48,
     marginTop: 20,
     textAlign: 'left',
   },
@@ -238,7 +252,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'BricolageGrotesque',
     color: '#333',
   },
 });

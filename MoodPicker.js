@@ -5,6 +5,8 @@ import { db } from './firebase'; // Import your Firestore instance
 import { collection, addDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth'; // Import Firebase Auth
 import { LinearGradient } from 'expo-linear-gradient';
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading';
 
 // Mood data for rendering
 const moodData = [
@@ -22,7 +24,16 @@ const moodData = [
   { id: '12', mood: 'Grateful', icon: 'emoticon-kiss-outline' },
 ];
 
+
 const MoodPicker = ({ navigation }) => {
+  const [fontsLoaded] = useFonts({
+    'BricolageGrotesque': require('./assets/fonts/BricolageGrotesque.ttf'),
+  });
+
+  // Ensure fonts are loaded before rendering
+  if (!fontsLoaded) {
+    return <AppLoading />;
+  }
   // Function to save mood data to Firestore
   const saveMoodToDatabase = async (mood, day, timestamp, uid) => {
     try {
@@ -92,7 +103,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 36,
-    fontWeight: 'bold',
+    fontFamily: 'BricolageGrotesque',
     marginTop: 100,
     marginBottom: 10,
     color: '#333',

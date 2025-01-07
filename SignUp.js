@@ -5,6 +5,9 @@ import { auth } from "./firebase"; // Import the Auth instance
 import { LinearGradient } from 'expo-linear-gradient';
 import { db } from './firebase'; // Import Firestore instance
 import { doc, setDoc } from 'firebase/firestore';
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading';
+
 
 export default function Signup({ navigation }) {
   const [email, setEmail] = useState('');
@@ -14,6 +17,14 @@ export default function Signup({ navigation }) {
   const [gender, setGender] = useState('');
   const [age, setAge] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fontsLoaded] = useFonts({
+    'BricolageGrotesque': require('./assets/fonts/BricolageGrotesque.ttf'),
+  });
+
+  // Ensure fonts are loaded before rendering
+  if (!fontsLoaded) {
+    return <AppLoading />;
+  }
 
   const handleSignup = async () => {
     if (!email || !password || !fname || !gender || !age) {
@@ -100,9 +111,9 @@ export default function Signup({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', padding: 20 },
-  title: {color: 'white', fontSize: 50, marginTop: 50, marginBottom: 50, textAlign: 'center' },
-  input: { borderWidth: 2, borderColor: '#213555', backgroundColor: 'white', padding: 20, marginBottom: 20, borderRadius: 20 },
-  link: { color: 'blue', marginTop: 15, textAlign: 'center' },
+  title: {color: 'white', fontSize: 50, fontFamily: 'BricolageGrotesque', marginTop: 50, marginBottom: 50, textAlign: 'center' },
+  input: { borderWidth: 2, borderColor: '#213555', backgroundColor: 'white', padding: 15, marginBottom: 15, borderRadius: 20 },
+  link: { color: '213555', marginTop: 15, textAlign: 'center' },
   button: { backgroundColor: '#213555', padding: 15, borderRadius: 40, alignItems: 'center' },
-  buttonText: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+  buttonText: { color: '#fff', fontSize: 20, fontFamily: 'BricolageGrotesque' },
 });

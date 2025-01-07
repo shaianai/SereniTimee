@@ -6,6 +6,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { db } from './firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth'; // Import Firebase Auth
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading';
 
 export default function Timer({ navigation }) {
   const [hours, setHours] = useState(0);
@@ -13,7 +15,14 @@ export default function Timer({ navigation }) {
   const [seconds, setSeconds] = useState(0);
   const [sessionName, setSessionName] = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
+  const [fontsLoaded] = useFonts({
+    'BricolageGrotesque': require('./assets/fonts/BricolageGrotesque.ttf'),
+  });
 
+  // Ensure fonts are loaded before rendering
+  if (!fontsLoaded) {
+    return <AppLoading />;
+  }
   const startTimer = () => {
     if (!sessionName.trim()) {
       Alert.alert('Error', 'Please enter a session name.');
@@ -105,7 +114,7 @@ export default function Timer({ navigation }) {
             style={styles.picker}
           >
             {[...Array(24)].map((_, i) => (
-              <Picker.Item key={i} label={formatTime(i)} value={String(i)} />
+              <Picker.Item style={styles.buttonText} key={i} label={formatTime(i)} value={String(i)} />
             ))}
           </Picker>
           <Picker
@@ -114,7 +123,7 @@ export default function Timer({ navigation }) {
             style={styles.picker}
           >
             {[...Array(60)].map((_, i) => (
-              <Picker.Item key={i} label={formatTime(i)} value={String(i)} />
+              <Picker.Item style={styles.buttonText} key={i} label={formatTime(i)} value={String(i)} />
             ))}
           </Picker>
           <Picker
@@ -123,7 +132,7 @@ export default function Timer({ navigation }) {
             style={styles.picker}
           >
             {[...Array(60)].map((_, i) => (
-              <Picker.Item key={i} label={formatTime(i)} value={String(i)} />
+              <Picker.Item style={styles.buttonText} key={i} label={formatTime(i)} value={String(i)} />
             ))}
           </Picker>
         </View>
@@ -176,11 +185,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 48,
     textAlign: 'center',
     marginBottom: 20,
     color: '#fff',
+    fontFamily: 'BricolageGrotesque'
   },
   pickerContainer: {
     flexDirection: 'row',
@@ -189,9 +198,10 @@ const styles = StyleSheet.create({
   },
   picker: {
     flex: 1,
-    height: 50,
+    height: 70,
     marginHorizontal: 5,
     color: '#fff',
+    fontFamily: 'BricolageGrotesque',
   },
   input: {
     borderWidth: 1,
@@ -206,6 +216,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
+    borderColor: '#fff',
   },
   checkboxLabel: {
     marginLeft: 8,
@@ -219,9 +230,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
-    color: '#fff',
+    color: '#213555',
     fontSize: 20,
-    fontWeight: 'bold',
+    fontFamily: 'BricolageGrotesque'
   },
   backButton: {
     marginTop: 20,

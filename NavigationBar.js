@@ -6,13 +6,13 @@ export default function NavigationBar({ navigation }) {
   return (
     <View style={styles.navContainer}>
       <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-        <FontAwesome name="home" size={24} color="#fff" />
+        <FontAwesome name="home" size={50} color="#fff" />
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate('Favorites')}>
-        <FontAwesome name="bookmark" size={24} color="#fff" />
+        <FontAwesome name="bookmark" size={50} color="#fff" />
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate('Music')}>
-        <FontAwesome name="music" size={24} color="#fff" />
+        <FontAwesome name="music" size={50} color="#fff" />
       </TouchableOpacity>
     </View>
   );
