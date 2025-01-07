@@ -13,14 +13,7 @@ export default function Login({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [fontsLoaded] = useFonts({
-    'BricolageGrotesque': require('./assets/fonts/BricolageGrotesque.ttf'),
-  });
-
-  // Ensure fonts are loaded before rendering
-  if (!fontsLoaded) {
-    return <AppLoading />;
-  }
+  
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId: '798229436880-udrtejuog2j8rrh8jkq9cu8imrhhb64o.apps.googleusercontent.com',
