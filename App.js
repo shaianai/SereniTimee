@@ -7,6 +7,8 @@ import HomeScreen from './HomeScreen'; // Ensure the path is correct
 import Favorites from './Favorites'; // Ensure the path is correct
 import Music from './Music'; // Ensure the path is correct
 import Timer from './Timer'; // Ensure the path is correct
+import Journal from './Journal'; // Ensure the path is correct
+import Meditate from './Meditate'; // Ensure the path is correct
 import MoodPicker from './MoodPicker'; // Import the MoodPicker component
 import Start from './Start';
 
@@ -23,6 +25,8 @@ export default function App() {
         <Stack.Screen name="Favorites" component={Favorites} />
         <Stack.Screen name="Music" component={Music} />
         <Stack.Screen name="Timer" component={Timer} />
+        <Stack.Screen name="Journal" component={Journal} />
+        <Stack.Screen name="Meditate" component={Meditate} />
         <Stack.Screen name="Start" component={Start} />
       </Stack.Navigator>
     </NavigationContainer>

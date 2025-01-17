@@ -170,11 +170,11 @@ export default function HomeScreen({ navigation }) {
           <TouchableOpacity onPress={() => navigation.navigate('Timer')} style={styles.button}>
             <Text style={styles.buttonText}>Timer</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity onPress={() => navigation.navigate('Meditate')} style={styles.button}>
             <Text style={styles.buttonText}>Meditate</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Sleep</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Journal')} style={styles.button}>
+            <Text style={styles.buttonText}>Journal</Text>
           </TouchableOpacity>
         </View>
 
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   greetingText: {
     fontFamily: 'BricolageGrotesque',
     color: '#fff',
-    fontSize: 48,
+    fontSize: 28,
     marginTop: 20,
     textAlign: 'left',
   },

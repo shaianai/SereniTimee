@@ -1,156 +1,178 @@
-import React, { useState } from 'react';
-import NavigationBar from './NavigationBar';
-import {
-  View,
-  Text,
-  TextInput,
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { db } from './firebase';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialIcons } from '@expo/vector-icons';
+import NavigationBar from './NavigationBar';
 
-export default function App({ navigation }) {
-  const [input, setInput] = useState('');
-  const [events, setEvents] = useState([]);
+export default function Favorites() {
+  const [favorites, setFavorites] = useState([]);
+  const navigation = useNavigation();
 
-  const addEvent = () => {
-    if (input.trim()) {
-      setEvents([...events, input]);
-      setInput('');
+  // Fetch sessions from the Firestore database
+  const fetchFavorites = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+  
+    if (!user) {
+      Alert.alert('Error', 'You must be logged in to view favorites.');
+      return;
+    }
+  
+    try {
+      const q = query(
+        collection(db, 'favorites'),
+        where('uid', '==', user.uid) // Fetch documents where uid matches the user's UID
+      );
+      const querySnapshot = await getDocs(q);
+      const sessions = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setFavorites(sessions);
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+      Alert.alert('Error', 'Failed to load favorites.');
     }
   };
+  
 
-  const startEvent = (eventName) => {
-    alert(`Starting: ${eventName}`);
+  // Navigate to the Start.js screen with the session details
+  const handlePlay = async (session) => {
+    // Navigate to the Start.js screen with session details
+    navigation.navigate('Start', {
+      sessionName: session.name,
+      totalSeconds: convertDurationToSeconds(session.duration),
+      musicFile: session.music, // Pass the music file
+    });
   };
+  
+
+  // Convert duration string (e.g., "2h 30m 15s") to total seconds
+  const convertDurationToSeconds = (duration) => {
+    const [hours, minutes, seconds] = duration
+      .split(/h|m|s/)
+      .filter((x) => x) // Remove empty strings
+      .map((x) => parseInt(x.trim()));
+    return (hours || 0) * 3600 + (minutes || 0) * 60 + (seconds || 0);
+  };
+
+  useEffect(() => {
+    fetchFavorites();
+  }, []);
 
   return (
     <LinearGradient
-      colors={['#B2C9E3', '#F4F7FA']} // Gradient colors
-      style={styles.container}
+      colors={['#dbecff', '#a3c5ea', '#6086b0', '#214872']}
+      style={styles.gradientContainer}
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Favorites</Text>
-        <TouchableOpacity style={styles.dropdown}>
-          <Text style={styles.dropdownText}>Activity ▼</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Input Field */}
-      <TextInput
-        style={styles.input}
-        placeholder="Add a new event..."
-        placeholderTextColor="#A0B0C0"
-        value={input}
-        onChangeText={setInput}
-      />
-
-      {/* Add Button */}
-      <TouchableOpacity onPress={addEvent} style={styles.addButton}>
-        <Text style={styles.addButtonText}>Add Event</Text>
-      </TouchableOpacity>
-
-      {/* Event List */}
-      <FlatList
-        data={events}
-        renderItem={({ item }) => (
-          <View style={styles.eventContainer}>
-            <Text style={styles.eventText}>{item}</Text>
-            <TouchableOpacity
-              style={styles.startButton}
-              onPress={() => startEvent(item)}
-            >
-              <Text style={styles.startButtonText}>▶</Text>
-            </TouchableOpacity>
-          </View>
+      <View style={styles.container}>
+        <Text style={styles.title}>Favorite Sessions</Text>
+        {favorites.length > 0 ? (
+          <FlatList
+            data={favorites}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            renderItem={({ item }) => (
+              <View style={styles.sessionCard}>
+                <View style={styles.sessionInfo}>
+                  <Text style={styles.sessionName}>{item.name}</Text>
+                  <Text style={styles.sessionDuration}>{item.duration}</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.playButton}
+                  onPress={() => handlePlay(item)}
+                >
+                  <MaterialIcons name="play-arrow" size={24} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            )}
+          />
+        ) : (
+          <Text style={styles.noFavoritesText}>No favorites saved yet.</Text>
         )}
-        keyExtractor={(item, index) => index.toString()}
-      />
-
-          {/* Navigation Bar */}
-                <NavigationBar navigation={navigation} />
+      </View>
+      {/* Navigation Bar */}
+      <View style={styles.navBarContainer}>
+        <NavigationBar navigation={navigation} />
+      </View>
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  gradientContainer: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 10, // Spacing below the header
-    marginTop: 40, // Added margin to push the header down
+  container: {
+    flex: 1,
+    padding: 20,
+    paddingBottom: 80, // Add padding to prevent overlap with navigation bar
+    justifyContent: 'center',
   },
-  headerText: {
-    fontSize: 24,
+  title: {
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#4C637D',
-  },
-  dropdown: {
-    backgroundColor: '#DEE6F2',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-  },
-  dropdownText: {
-    fontSize: 14,
-    color: '#4C637D',
-  },
-  input: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    padding: 10,
-    marginHorizontal: 20, // Added horizontal margin for better alignment
-    marginBottom: 10,
-    fontSize: 16,
-    color: '#4C637D',
-    borderWidth: 1,
-    borderColor: '#DEE6F2',
-  },
-  addButton: {
-    backgroundColor: '#4C637D',
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginHorizontal: 20, // Align with the input
+    textAlign: 'center',
     marginBottom: 20,
+    marginTop: 20,
+    color: '#fff',
+    backgroundColor: '#214872',
+    padding: 15,
+    borderRadius: 20,
   },
-  addButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
+  listContent: {
+    paddingBottom: 100, // Extra padding for list content to avoid overlap
   },
-  eventContainer: {
+  sessionCard: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    padding: 10,
-    marginHorizontal: 20, // Align events with the rest of the layout
-    marginBottom: 10,
+    backgroundColor: '#fff',
+    padding: 15,
+    marginVertical: 10,
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#DEE6F2',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
-  eventText: {
-    fontSize: 16,
-    color: '#4C637D',
+  sessionInfo: {
+    flex: 1,
   },
-  startButton: {
-    backgroundColor: '#B4C9E2',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-  },
-  startButtonText: {
-    color: '#4C637D',
-    fontSize: 14,
+  sessionName: {
+    fontSize: 18,
     fontWeight: 'bold',
+    color: '#214872',
+  },
+  sessionDuration: {
+    fontSize: 14,
+    color: '#555',
+  },
+  playButton: {
+    backgroundColor: '#6086b0',
+    padding: 10,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noFavoritesText: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#fff',
+    marginTop: 20,
+  },
+  navBarContainer: {
+    position: 'absolute', // Keep navigation bar fixed at the bottom
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 90, // Adjust the height as per your navigation bar design
+    backgroundColor: '#214872',
+    justifyContent: 'center',
   },
 });
+

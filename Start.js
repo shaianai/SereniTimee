@@ -240,10 +240,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 20,
     padding: 20,
-    position: 'absolute',  // Use absolute positioning
-    bottom: 0,             // Position it at the bottom
-    left: 0,               // Optional: ensures it's aligned with the left side of the screen
-    right: 0,              // Optional: ensures it's aligned with the right side of the screen
+    position: 'absolute',    // Use absolute positioning
+    bottom: 0,               // Position it at the bottom
+    left: 0,                 // Optional: ensures it's aligned with the left side of the screen
+    right: 0,                // Optional: ensures it's aligned with the right side of the screen
   },  
   title: {
     fontSize: 36,

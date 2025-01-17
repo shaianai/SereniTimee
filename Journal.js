@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,54 +8,102 @@ import {
   TextInput,
   Modal,
   TouchableWithoutFeedback,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { db } from './firebase'; // Firestore instance
+import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth'; // Firebase authentication
+import NavigationBar from './NavigationBar';
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading';
 
-export default function JournalingScreen() {
+export default function Journal({ navigation }) {
   const [notes, setNotes] = useState([]);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isModalVisible, setModalVisible] = useState(false);
-  const [selectedNote, setSelectedNote] = useState(null);
-  const [isNoteModalVisible, setNoteModalVisible] = useState(false);
-  const [isEditing, setEditing] = useState(false);
 
-  const addDiaryEntry = () => {
-    if (title.trim() && content.trim()) {
-      setNotes([...notes, { title, content, date: new Date().toLocaleDateString() }]);
-      setTitle('');
-      setContent('');
-      setModalVisible(false);
-    } else {
-      alert('Both title and content are required!');
+  const auth = getAuth();
+  const [fontsLoaded] = useFonts({
+    'BricolageGrotesque': require('./assets/fonts/BricolageGrotesque.ttf'),
+  });
+
+  // Ensure fonts are loaded before rendering
+  if (!fontsLoaded) {
+    return <AppLoading />;
+  }
+
+  // Fetch journal entries from Firestore
+  const fetchJournals = async () => {
+    const user = auth.currentUser;
+
+    if (!user) {
+      Alert.alert('Error', 'You must be logged in to view your journals.');
+      return;
+    }
+
+    try {
+      const q = query(collection(db, 'journals'), where('uid', '==', user.uid));
+      const querySnapshot = await getDocs(q);
+
+      const journals = querySnapshot.docs.map((doc) => ({
+        id: doc.id, // Include the document ID
+        ...doc.data(), // Include all other data fields
+      }));
+
+      setNotes(journals);
+    } catch (error) {
+      console.error('Error fetching journals:', error);
+      Alert.alert('Error', 'Failed to fetch journals. Please try again.');
     }
   };
 
-  const deleteNote = (index) => {
-    const updatedNotes = notes.filter((_, i) => i !== index);
-    setNotes(updatedNotes);
-    setNoteModalVisible(false);
+  // Add a new journal entry to Firestore
+  const addDiaryEntry = async () => {
+    if (title.trim() && content.trim()) {
+      const user = auth.currentUser;
+  
+      if (!user) {
+        Alert.alert('Error', 'You must be logged in to add a journal entry.');
+        return;
+      }
+  
+      const newEntry = {
+        title,
+        content,
+        date: new Date().toLocaleDateString(),
+        uid: user.uid,
+        createdAt: new Date(),
+      };
+  
+      try {
+        // Add to Firestore
+        const docRef = await addDoc(collection(db, 'journals'), newEntry);
+  
+        // Add the new entry to state with the Firestore-generated ID
+        setNotes((prevNotes) => [
+          ...prevNotes,
+          { id: docRef.id, ...newEntry },
+        ]);
+  
+        setTitle('');
+        setContent('');
+        setModalVisible(false);
+      } catch (error) {
+        console.error('Error saving journal entry:', error);
+        Alert.alert('Error', 'Failed to save journal entry. Please try again.');
+      }
+    } else {
+      Alert.alert('Error', 'Both title and content are required!');
+    }
   };
+  
 
-  const saveEdit = () => {
-    const updatedNotes = [...notes];
-    updatedNotes[selectedNote.index] = {
-      ...selectedNote,
-      title,
-      content,
-    };
-    setNotes(updatedNotes);
-    setNoteModalVisible(false);
-    setEditing(false);
-  };
-
-  const openNote = (note) => {
-    setSelectedNote(note);
-    setTitle(note.title);
-    setContent(note.content);
-    setNoteModalVisible(true);
-  };
+  useEffect(() => {
+    fetchJournals();
+  }, []);
 
   return (
     <LinearGradient
@@ -70,29 +118,24 @@ export default function JournalingScreen() {
       {/* Notes List */}
       <FlatList
         data={notes}
-        renderItem={({ item, index }) => (
-          <TouchableOpacity onPress={() => openNote({ ...item, index })}>
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>{item.title}</Text>
-              <Text style={styles.cardDate}>{item.date}</Text>
-              <Text style={styles.cardContent} numberOfLines={3}>
-                {item.content}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        )}
-        keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={styles.notesList}
-        ListEmptyComponent={
-          <Text style={styles.emptyListText}>
-            No journal entries yet. Add your first entry!
-          </Text>
-        }
+        keyExtractor={(item) => item.id} // Ensure every item has a unique 'id'
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>{item.title}</Text>
+            <Text style={styles.cardDate}>{item.date}</Text>
+            <Text style={styles.cardContent} numberOfLines={3}>
+              {item.content}
+            </Text>
+          </View>
+        )}contentContainerStyle={{
+          paddingBottom: 90, // Prevent overlap with navigation bar
+        }}
       />
+
 
       {/* Add Entry Button */}
       <TouchableOpacity
-        style={styles.addButton}
+        style={[styles.addButton, { bottom: 140}]}
         onPress={() => setModalVisible(true)}
       >
         <Ionicons name="add" size={36} color="#FFFFFF" />
@@ -134,60 +177,10 @@ export default function JournalingScreen() {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
-
-      {/* Note Details Modal */}
-      <Modal visible={isNoteModalVisible} animationType="fade" transparent={true}>
-        <TouchableWithoutFeedback onPress={() => setNoteModalVisible(false)}>
-          <View style={styles.modalContainer}>
-            <TouchableWithoutFeedback>
-              <View style={styles.noteModalContent}>
-                {isEditing ? (
-                  <>
-                    <TextInput
-                      style={styles.modalInput}
-                      value={title}
-                      onChangeText={setTitle}
-                    />
-                    <TextInput
-                      style={styles.modalTextarea}
-                      value={content}
-                      onChangeText={setContent}
-                      multiline={true}
-                    />
-                    <TouchableOpacity style={styles.saveButton} onPress={saveEdit}>
-                      <Text style={styles.saveButtonText}>Save</Text>
-                    </TouchableOpacity>
-                  </>
-                ) : (
-                  <>
-                    <Text style={styles.noteTitle}>{selectedNote?.title}</Text>
-                    <Text style={styles.noteDate}>{selectedNote?.date}</Text>
-                    <Text style={styles.noteContent}>{selectedNote?.content}</Text>
-                  </>
-                )}
-
-                {/* Delete Button */}
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => deleteNote(selectedNote?.index)}
-                >
-                  <Text style={styles.deleteButtonText}>Delete</Text>
-                </TouchableOpacity>
-
-                {/* Edit Button */}
-                {!isEditing && (
-                  <TouchableOpacity
-                    style={styles.editButton}
-                    onPress={() => setEditing(true)}
-                  >
-                    <Text style={styles.editButtonText}>Edit</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
+      {/* Navigation Bar */}
+            <View style={styles.navBarContainer}>
+              <NavigationBar navigation={navigation} />
+            </View>
     </LinearGradient>
   );
 }
@@ -204,8 +197,9 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   headerText: {
+    fontFamily: 'BricolageGrotesque',
     fontSize: 28,
-    fontWeight: 'bold',
+    //fontWeight: 'bold',
     color: '#FFFFFF',
   },
   notesList: {
@@ -215,7 +209,9 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
     padding: 15,
-    marginBottom: 20,
+    marginBottom: 15,
+    marginLeft: 10,
+    marginRight: 10,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#84A9C0',
@@ -223,7 +219,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontFamily: 'BricolageGrotesque',
     color: '#0F4470',
     marginBottom: 5,
   },
@@ -303,55 +299,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   saveButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  noteModalContent: {
-    backgroundColor: '#FFFFFF',
-    width: '90%',
-    borderRadius: 15,
-    padding: 20,
-    elevation: 10,
-  },
-  noteTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#0F4470',
-    marginBottom: 10,
-  },
-  noteDate: {
-    fontSize: 12,
-    color: '#84A9C0',
-    marginBottom: 20,
-  },
-  noteContent: {
-    fontSize: 16,
-    color: '#0F4470',
-    marginBottom: 20,
-  },
-  deleteButton: {
-    backgroundColor: '#FF6B6B',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    alignSelf: 'center',
-    marginBottom: 10,
-  },
-  deleteButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  editButton: {
-    backgroundColor: '#84A9C0',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    alignSelf: 'center',
-    marginTop: 10,
-  },
-  editButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
