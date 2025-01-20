@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { Picker } from '@react-native-picker/picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { db } from './firebase';
+import { db } from '../components/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
+import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
-import AppLoading from 'expo-app-loading';
 
 export default function Timer({ navigation }) {
   const [hours, setHours] = useState(0);
@@ -17,8 +17,24 @@ export default function Timer({ navigation }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedMusic, setSelectedMusic] = useState('');
   const [fontsLoaded] = useFonts({
-    'BricolageGrotesque': require('./assets/fonts/BricolageGrotesque.ttf'),
-  });
+      'BricolageGrotesque': require('../assets/fonts/BricolageGrotesque.ttf'),
+    });
+  
+    useEffect(() => {
+      async function prepare() {
+        if (!fontsLoaded) {
+          await SplashScreen.preventAutoHideAsync(); // Keep the splash screen visible
+        } else {
+          await SplashScreen.hideAsync(); // Hide the splash screen once fonts are loaded
+        }
+      }
+      prepare();
+    }, [fontsLoaded]);
+  
+    // Render null or a fallback UI while the splash screen is visible
+    if (!fontsLoaded) {
+      return null;
+    }
 
   const musicOptions = [
     { label: 'Choose Music Here', value: '' },
@@ -27,9 +43,6 @@ export default function Timer({ navigation }) {
     { label: 'Focus Beats', value: 'focus.mp3' },
   ];
 
-  if (!fontsLoaded) {
-    return <AppLoading />;
-  }
 
   const startTimer = () => {
     if (!sessionName.trim()) {

@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, Alert } from 'react-native';
 import { doc, getDoc, getDocs, query, where, collection, orderBy, limit } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import { db } from './firebase'; // Adjust path as needed
-import NavigationBar from './NavigationBar';
-import SignOutComponent from './SignOutComponent';
+import { db } from '../components/firebase'; // Adjust path as needed
+import NavigationBar from '../components/NavigationBar';
+import SignOutComponent from '../components/SignOutComponent';
+import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
-import AppLoading from 'expo-app-loading';
 
 export default function HomeScreen({ navigation }) {
   const [weeklyMoods, setWeeklyMoods] = useState(new Array(7).fill('⚪')); // Default to empty circles
@@ -15,12 +15,23 @@ export default function HomeScreen({ navigation }) {
   const [currentDate, setCurrentDate] = useState('');
   const [currentTime, setCurrentTime] = useState('');
   const [fontsLoaded] = useFonts({
-    'BricolageGrotesque': require('./assets/fonts/BricolageGrotesque.ttf'),
+    'BricolageGrotesque': require('../assets/fonts/BricolageGrotesque.ttf'),
   });
 
-  // Ensure fonts are loaded before rendering
+  useEffect(() => {
+    async function prepare() {
+      if (!fontsLoaded) {
+        await SplashScreen.preventAutoHideAsync(); // Keep the splash screen visible
+      } else {
+        await SplashScreen.hideAsync(); // Hide the splash screen once fonts are loaded
+      }
+    }
+    prepare();
+  }, [fontsLoaded]);
+
+  // Render null or a fallback UI while the splash screen is visible
   if (!fontsLoaded) {
-    return <AppLoading />;
+    return null;
   }
   useEffect(() => {
     // Update the date and time every second

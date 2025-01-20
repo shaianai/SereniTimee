@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { db } from './firebase'; // Import your Firestore instance
+import { db } from '../components/firebase'; // Import your Firestore instance
 import { collection, addDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth'; // Import Firebase Auth
 import { LinearGradient } from 'expo-linear-gradient';
+import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
-import AppLoading from 'expo-app-loading';
 
 // Mood data for rendering
 const moodData = [
@@ -27,13 +27,24 @@ const moodData = [
 
 const MoodPicker = ({ navigation }) => {
   const [fontsLoaded] = useFonts({
-    'BricolageGrotesque': require('./assets/fonts/BricolageGrotesque.ttf'),
-  });
-
-  // Ensure fonts are loaded before rendering
-  if (!fontsLoaded) {
-    return <AppLoading />;
-  }
+      'BricolageGrotesque': require('../assets/fonts/BricolageGrotesque.ttf'),
+    });
+  
+    useEffect(() => {
+      async function prepare() {
+        if (!fontsLoaded) {
+          await SplashScreen.preventAutoHideAsync(); // Keep the splash screen visible
+        } else {
+          await SplashScreen.hideAsync(); // Hide the splash screen once fonts are loaded
+        }
+      }
+      prepare();
+    }, [fontsLoaded]);
+  
+    // Render null or a fallback UI while the splash screen is visible
+    if (!fontsLoaded) {
+      return null;
+    }
   // Function to save mood data to Firestore
   const saveMoodToDatabase = async (mood, day, timestamp, uid) => {
     try {

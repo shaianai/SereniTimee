@@ -1,5 +1,5 @@
-import React from 'react';
-import NavigationBar from './NavigationBar';
+import React, {useEffect} from 'react';
+import NavigationBar from '../components/NavigationBar';
 import {
   View,
   Text,

@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Image } from 'react-native';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
-import { auth } from './firebase'; // Import the Auth instance
-import AsyncStorage from '@react-native-async-storage/async-storage'; // To store UID locally
+import { auth } from '../components/firebase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Google from 'expo-auth-session/providers/google';
+import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
-import AppLoading from 'expo-app-loading';
-
 
 export default function Login({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
+  const [fontsLoaded] = useFonts({
+    BricolageGrotesque: require('../assets/fonts/BricolageGrotesque.ttf'),
+  });
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId: '798229436880-udrtejuog2j8rrh8jkq9cu8imrhhb64o.apps.googleusercontent.com',
@@ -23,6 +25,17 @@ export default function Login({ navigation }) {
   });
 
   useEffect(() => {
+    async function prepare() {
+      if (!fontsLoaded) {
+        await SplashScreen.preventAutoHideAsync();
+      } else {
+        await SplashScreen.hideAsync();
+      }
+    }
+    prepare();
+  }, [fontsLoaded]);
+
+  useEffect(() => {
     const handleGoogleResponse = async () => {
       if (response?.type === 'success') {
         const { id_token } = response.params;
@@ -30,10 +43,7 @@ export default function Login({ navigation }) {
         try {
           const userCredential = await signInWithCredential(auth, credential);
           const uid = userCredential.user.uid;
-
-          // Store UID locally
           await AsyncStorage.setItem('uid', uid);
-
           Alert.alert('Success', 'Logged in with Google successfully!');
           navigation.navigate('MoodPicker');
         } catch (error) {
@@ -41,7 +51,6 @@ export default function Login({ navigation }) {
         }
       }
     };
-
     handleGoogleResponse();
   }, [response]);
 
@@ -54,10 +63,7 @@ export default function Login({ navigation }) {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCredential.user.uid;
-
-      // Store UID locally
       await AsyncStorage.setItem('uid', uid);
-
       Alert.alert('Success', 'Logged in successfully!');
       navigation.navigate('MoodPicker');
     } catch (error) {
@@ -67,8 +73,12 @@ export default function Login({ navigation }) {
     }
   };
 
+  if (!fontsLoaded) {
+    return null; // Prevent rendering if fonts are not loaded
+  }
+
   return (
-    <LinearGradient colors={['#6086b0', '#214872', '#214872', '#6086b0', '#a3c5ea', '#dbecff']} style={styles.container}>
+    <LinearGradient colors={['#6086b0', '#214872']} style={styles.container}>
       <Text style={styles.title}>SereniTime</Text>
       <Text style={styles.subtitle}>Tagline</Text>
       <TextInput
@@ -93,9 +103,7 @@ export default function Login({ navigation }) {
       <TouchableOpacity style={styles.googleButton} onPress={() => promptAsync()} disabled={!request}>
         <View style={styles.googleButtonContent}>
           <Image
-            source={{
-              uri: 'https://pluspng.com/img-png/google-logo-png-open-2000.png',
-            }}
+            source={{ uri: 'https://pluspng.com/img-png/google-logo-png-open-2000.png' }}
             style={styles.googleLogo}
           />
           <Text style={styles.googleButtonText}>Login with Google</Text>
@@ -120,5 +128,5 @@ const styles = StyleSheet.create({
   input: { borderWidth: 2, borderColor: '#213555', backgroundColor: 'white', padding: 20, marginBottom: 20, borderRadius: 20 },
   link: { color: '#213555', marginTop: 15, textAlign: 'center' },
   button: { backgroundColor: '#213555', padding: 15, borderRadius: 40, alignItems: 'center' },
-  buttonText: { color: '#fff', fontSize: 20, fontFamily: 'BricolageGrotesque', },
+  buttonText: { color: '#fff', fontSize: 20, fontFamily: 'BricolageGrotesque' },
 });

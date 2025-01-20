@@ -2,11 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Alert, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Audio } from 'expo-av';
-import NavigationBar from './NavigationBar';
+import NavigationBar from '../components/NavigationBar';
 const musicFiles = {
-  piano: require('./assets/music/piano.mp3'),
-  nature: require('./assets/music/nature.mp3'),
-  focus: require('./assets/music/focus.mp3'),
+  piano: require('../assets/music/piano.mp3'),
+  nature: require('../assets/music/nature.mp3'),
+  focus: require('../assets/music/focus.mp3'),
 };
 
 export default function Meditate({ navigation }) {
@@ -79,6 +79,14 @@ export default function Meditate({ navigation }) {
       setIsPaused(true);
     }
   };
+  // Resume music
+const handleResume = async () => {
+  if (soundRef.current) {
+    await soundRef.current.playAsync();
+    setIsPaused(false);
+  }
+};
+
 
   // Breathing Guide Animation
   const startBreathingGuide = () => {
@@ -210,9 +218,13 @@ export default function Meditate({ navigation }) {
       {/* Music control buttons */}
       {isPlaying && (
         <View style={styles.controlsContainer}>
-          <TouchableOpacity style={styles.controlButton} onPress={handlePause}>
+          <TouchableOpacity
+            style={styles.controlButton}
+            onPress={isPaused ? handleResume : handlePause}
+          >
             <Text style={styles.controlButtonText}>{isPaused ? 'Resume' : 'Pause'}</Text>
           </TouchableOpacity>
+
           <TouchableOpacity style={styles.controlButton} onPress={handleStop}>
             <Text style={styles.controlButtonText}>Stop</Text>
           </TouchableOpacity>

@@ -1,16 +1,16 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import Signup from './SignUp'; // Ensure the path is correct
-import Login from './Login'; // Ensure the path is correct
-import HomeScreen from './HomeScreen'; // Ensure the path is correct
-import Favorites from './Favorites'; // Ensure the path is correct
-import Music from './Music'; // Ensure the path is correct
-import Timer from './Timer'; // Ensure the path is correct
-import Journal from './Journal'; // Ensure the path is correct
-import Meditate from './Meditate'; // Ensure the path is correct
-import MoodPicker from './MoodPicker'; // Import the MoodPicker component
-import Start from './Start';
+import Signup from './screens/SignUp'; // Ensure the path is correct
+import Login from './screens/Login'; // Ensure the path is correct
+import HomeScreen from './screens/HomeScreen'; // Ensure the path is correct
+import Favorites from './screens/Favorites'; // Ensure the path is correct
+import Music from './screens/Music'; // Ensure the path is correct
+import Timer from './screens/Timer'; // Ensure the path is correct
+import Journal from './screens/Journal'; // Ensure the path is correct
+import Meditate from './screens/Meditate'; // Ensure the path is correct
+import MoodPicker from './screens/MoodPicker'; // Import the MoodPicker component
+import Start from './screens/Start';
 
 const Stack = createStackNavigator();
 

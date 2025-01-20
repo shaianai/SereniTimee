@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { db } from './firebase';
+import { db } from '../components/firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
-import NavigationBar from './NavigationBar';
+import NavigationBar from '../components/NavigationBar';
 
 export default function Favorites() {
   const [favorites, setFavorites] = useState([]);

@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "./firebase"; // Import the Auth instance
+import { auth } from "../components/firebase"; // Import the Auth instance
 import { LinearGradient } from 'expo-linear-gradient';
-import { db } from './firebase'; // Import Firestore instance
+import { db } from '../components/firebase'; // Import Firestore instance
 import { doc, setDoc } from 'firebase/firestore';
+import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
-import AppLoading from 'expo-app-loading';
 
 
 export default function Signup({ navigation }) {
@@ -18,13 +18,24 @@ export default function Signup({ navigation }) {
   const [age, setAge] = useState('');
   const [loading, setLoading] = useState(false);
   const [fontsLoaded] = useFonts({
-    'BricolageGrotesque': require('./assets/fonts/BricolageGrotesque.ttf'),
-  });
-
-  // Ensure fonts are loaded before rendering
-  if (!fontsLoaded) {
-    return <AppLoading />;
-  }
+      'BricolageGrotesque': require('../assets/fonts/BricolageGrotesque.ttf'),
+    });
+  
+    useEffect(() => {
+      async function prepare() {
+        if (!fontsLoaded) {
+          await SplashScreen.preventAutoHideAsync(); // Keep the splash screen visible
+        } else {
+          await SplashScreen.hideAsync(); // Hide the splash screen once fonts are loaded
+        }
+      }
+      prepare();
+    }, [fontsLoaded]);
+  
+    // Render null or a fallback UI while the splash screen is visible
+    if (!fontsLoaded) {
+      return null;
+    }
 
   const handleSignup = async () => {
     if (!email || !password || !fname || !gender || !age) {

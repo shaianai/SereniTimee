@@ -3,12 +3,12 @@ import { View, Text, StyleSheet, Animated, TouchableOpacity, Alert } from 'react
 import { LinearGradient } from 'expo-linear-gradient';
 import { getDocs, collection } from 'firebase/firestore';
 import { Audio } from 'expo-av';
-import { db } from './firebase';
+import { db } from '../components/firebase';
 
 const musicFiles = {
-  'piano.mp3': require('./assets/music/piano.mp3'),
-  'nature.mp3': require('./assets/music/nature.mp3'),
-  'focus.mp3': require('./assets/music/focus.mp3'),
+  'piano.mp3': require('../assets/music/piano.mp3'),
+  'nature.mp3': require('../assets/music/nature.mp3'),
+  'focus.mp3': require('../assets/music/focus.mp3'),
 };
 
 export default function Start({ route, navigation }) {
